@@ -1,5 +1,8 @@
 {
+  "name": "site-tester",
+  "description": "This crawler takes screenshots of website pages and create a csv file to documentate the test of the application",
   "dependencies": {
+    "csv-writer": "^1.6.0",
     "fast-xml-parser": "^4.0.15",
     "puppeteer": "^19.6.1",
     "puppeteer-tsd": "^0.0.2"

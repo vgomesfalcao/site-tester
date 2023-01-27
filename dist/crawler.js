@@ -17,17 +17,20 @@ const fast_xml_parser_1 = require("fast-xml-parser");
 const fs_1 = require("fs");
 const puppeteer_1 = __importDefault(require("puppeteer"));
 const url_1 = require("url");
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 class Crawler {
     constructor(siteMapPath) {
-        this.parser = new fast_xml_parser_1.XMLParser();
-        this.dirname = './printscreen/';
-        this.siteMapPath = siteMapPath;
+        this._parser = new fast_xml_parser_1.XMLParser();
+        this._printDirname = './export/printscreen/';
+        this._csvDirname = './export/doc/';
+        this._siteMapPath = siteMapPath;
+        this.getUrlPathsList();
     }
     navigateAndTakePrint() {
         return __awaiter(this, void 0, void 0, function* () {
-            const paths = this.getUrlList().slice(0, 3);
-            if (!(0, fs_1.existsSync)(this.dirname)) {
-                (0, fs_1.mkdirSync)(this.dirname);
+            const paths = this._urls;
+            if (!(0, fs_1.existsSync)(this._printDirname)) {
+                (0, fs_1.mkdirSync)(this._printDirname, { recursive: true });
             }
             ;
             (() => __awaiter(this, void 0, void 0, function* () {
@@ -45,21 +48,47 @@ class Crawler {
             }))();
         });
     }
-    getUrlList() {
-        let siteMapObject = this.parser.parse((0, fs_1.readFileSync)(this.siteMapPath));
-        let siteMapUrls = [];
+    getUrlPathsList() {
+        let siteMapObject = this._parser.parse((0, fs_1.readFileSync)(this._siteMapPath));
+        let _urls = [];
         for (const item of siteMapObject['urlset']['url']) {
-            siteMapUrls.push(item['loc']);
+            _urls.push(item['loc']);
         }
-        return siteMapUrls;
+        this._urls = _urls.slice(0, 3);
     }
     createFilePath(path) {
         const url = new url_1.URL(path);
         if (url.pathname == '/') {
-            return `${this.dirname}${url.host.replaceAll('.', '_')}.png`;
+            return `${this._printDirname}${url.host.replaceAll('.', '_')}.png`;
         }
-        const filePath = `${this.dirname}${url.host.replaceAll('.', '_')}_${url.pathname.slice(1).replaceAll('/', '-')}.png`;
+        const filePath = `${this._printDirname}${url.host.replaceAll('.', '_')}_${url.pathname.slice(1).replaceAll('/', '-')}.png`;
         return filePath;
+    }
+    generateRecords() {
+        let records = [];
+        this._urls.forEach((element) => {
+            records.push({
+                url: element,
+                imgPath: this.createFilePath(element),
+            });
+        });
+        return records;
+    }
+    createCSVFile() {
+        if (!(0, fs_1.existsSync)(this._csvDirname)) {
+            (0, fs_1.mkdirSync)(this._csvDirname, { recursive: true });
+        }
+        const csvWriter = createCsvWriter({
+            path: this._csvDirname + 'test.csv',
+            header: [
+                { id: 'url', title: 'URL' },
+                { id: 'imgPath', title: 'IMG' },
+            ],
+        });
+        const records = this.generateRecords();
+        csvWriter.writeRecords(records).then(() => {
+            console.log('...Done');
+        });
     }
 }
 exports.Crawler = Crawler;
