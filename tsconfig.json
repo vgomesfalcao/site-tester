@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "lib": ["ES2021", "dom"],
+    "module": "NodeNext",
+    "outDir": "dist",
+    "noImplicitAny": false,
+    "sourceMap": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "declaration": true,
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedParameters": false,
+    "pretty": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowUnreachableCode": false
+  },
+  "compileOnSave": true,
+  "include": ["src/**/*", "node_modules/puppeteer-tsd/src/index.d.ts"],
+  "exclude": ["node_modules"]
+}
