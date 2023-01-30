@@ -1,6 +1,6 @@
 # Site Tester
 
-This package is used to take screenshots of website pages and create a csv file to documentate the test of the application.
+Take screenshots of website pages and create a CSV file to document testing the application
 
 ## Usage
 
