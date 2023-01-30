@@ -7,6 +7,7 @@ export class Crawler {
   private _parser: XMLParser = new XMLParser()
   private _siteMapPath: string
   private _urls: string[]
+  private _statusCode: string[] = []
   private _printDirname = './export/printscreen/'
   private _csvDirname = './export/doc/'
 
@@ -22,20 +23,28 @@ export class Crawler {
     const paths = this._urls
 
     if (!existsSync(this._printDirname)) {
-      mkdirSync(this._printDirname,{recursive:true})
+      mkdirSync(this._printDirname, { recursive: true })
     }
     ;(async () => {
       const browser = await puppeteer.launch()
       const page = await browser.newPage()
+      await page.goto(paths[0], { waitUntil: 'networkidle2' })
+      await page.type('#edit-name', 'admin_cap')
+      await page.type('#edit-pass', 'LfK75Jy8T^YT')
+      await Promise.all([
+        page.click('#edit-submit'),
+        page.waitForNavigation({ waitUntil: 'networkidle2' }),
+      ])
       for (const path of paths) {
         const filepath = this.createFilePath(path)
-        await page.goto(path, { waitUntil: 'networkidle2' })
+        const response = await page.goto(path, { waitUntil: 'networkidle2' })
+        this._statusCode.push(response.status().toString())
         await page.screenshot({
           path: filepath,
           fullPage: true,
         })
       }
-      await browser.close()
+      await browser.close().then(() => this.createCSVFile())
     })()
   }
   /**
@@ -68,9 +77,10 @@ export class Crawler {
 
   private generateRecords(): object[] {
     let records: object[] = []
-    this._urls.forEach((element) => {
+    this._urls.forEach((element, index) => {
       records.push({
-        url: element,
+        url: new URL(element).pathname,
+        statusCode: this._statusCode[index],
         imgPath: this.createFilePath(element),
       })
     })
@@ -79,12 +89,13 @@ export class Crawler {
 
   public createCSVFile() {
     if (!existsSync(this._csvDirname)) {
-      mkdirSync(this._csvDirname,{recursive:true})
+      mkdirSync(this._csvDirname, { recursive: true })
     }
     const csvWriter = createCsvWriter({
       path: this._csvDirname + 'test.csv',
       header: [
         { id: 'url', title: 'URL' },
+        { id: 'statusCode', title: 'Status Code' },
         { id: 'imgPath', title: 'IMG' },
       ],
     })
