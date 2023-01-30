@@ -27,6 +27,7 @@ npm run watch
 
 This package requires the following dependencies:
 
+- puppeteer
 - csv-writer
 - dotenv
 - fast
