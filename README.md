@@ -1,33 +1,38 @@
-# Site Tester
+# Site-Tester
+A website testing tool that takes screenshots of website pages and generates a CSV file documenting the test results of the application.
 
-Take screenshots of website pages and create a CSV file to document testing the application
+## Dependencies
+- csv-writer
+- dotenv
+- fast-xml-parser
+- puppeteer
+- puppeteer-tsd
+- Development Dependencies
+- @typescript-eslint/eslint-plugin
+- eslint
+- eslint-config-standard-with-typescript
+- eslint-plugin-import
+- eslint-plugin-n
+- eslint-plugin-promise
+- nodemon
+- ts-node
+- typescript
 
-## Usage
-
-Move your sitemap.xml file to resources/sitemap and rename to sitemap.xml
-
-path: `resources/sitemap/sitemap.xml`
-
-run 
-
-build:
+## Installation
+To install the package and its dependencies, run the following command in your terminal:
 
 ```bash
- npm run start
+npm install site-tester
 ```
 
-watch:
+## Usage
+To build and start the application, run the following script in your terminal:
+
+```bash
+npm run start
+```
+To continuously watch for changes and start the application automatically, run the following script in your terminal:
 
 ```bash
 npm run watch
 ```
-
-
-## Dependencies
-
-This package requires the following dependencies:
-
-- puppeteer
-- csv-writer
-- dotenv
-- fast
