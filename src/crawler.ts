@@ -9,7 +9,7 @@ export class Crawler {
   private _siteMapPath: string
   private _pathMapList: UrlMap[] = []
   private _printDirname = './export/printscreen/'
-  private _csvDirname = './export/doc/'
+  private _csvDirname = './export/'
 
   constructor(siteMapPath: string) {
     this._siteMapPath = siteMapPath
@@ -36,9 +36,10 @@ export class Crawler {
         page.click('#edit-submit'),
         page.waitForNavigation({ waitUntil: 'networkidle2' }),
       ])
-      paths.forEach(async (path, index) => {
+
+      for (const [index, path] of paths.entries()) {
         const filepath = path.imgPath
-        console.log(paths[0].url)
+        console.log('Acessando página número' + index)
 
         const response = await page.goto(path.url, {
           waitUntil: 'networkidle2',
@@ -48,7 +49,7 @@ export class Crawler {
           path: filepath,
           fullPage: true,
         })
-      })
+      }
 
       await browser.close().then(() => this.createCSVFile())
     })()
@@ -63,6 +64,7 @@ export class Crawler {
     for (const item of siteMapObject['urlset']['url']) {
       this._pathMapList.push({ url: item['loc'] })
     }
+    this._pathMapList = this._pathMapList.slice(0, 3)
   }
   /**
    * Returns the complete path and filename of file
@@ -90,10 +92,10 @@ export class Crawler {
       mkdirSync(this._csvDirname, { recursive: true })
     }
     const csvWriter = createCsvWriter({
-      path: this._csvDirname + 'test.csv',
+      path: this._csvDirname + 'pages_test.csv',
       header: [
-        { id: 'url', title: 'URL' },
         { id: 'statusCode', title: 'Status Code' },
+        { id: 'url', title: 'URL' },
         { id: 'imgPath', title: 'IMG' },
       ],
     })
