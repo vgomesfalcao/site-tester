@@ -8,14 +8,15 @@ A website testing tool that takes screenshots of website pages and generates a C
 - puppeteer
 - puppeteer-tsd
 - Development Dependencies
-- @typescript-eslint/eslint-plugin
+## Dev-dependencies
 - eslint
 - eslint-config-standard-with-typescript
 - eslint-plugin-import
 - eslint-plugin-n
 - eslint-plugin-promise
-- nodemon
+- @typescript-eslint/eslint-plugin
 - ts-node
+- nodemon
 - typescript
 
 ## Installation
