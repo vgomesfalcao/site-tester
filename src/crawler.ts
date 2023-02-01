@@ -3,42 +3,53 @@ import { readFileSync, existsSync, mkdirSync } from 'fs'
 import puppeteer from 'puppeteer'
 import { URL } from 'url'
 const createCsvWriter = require('csv-writer').createObjectCsvWriter
+type UrlMap = { url: string; statusCode?: string; imgPath?: string }
 export class Crawler {
   private _parser: XMLParser = new XMLParser()
   private _siteMapPath: string
-  private _urls: string[]
-  private _statusCode: string[] = []
+  private _pathMapList: UrlMap[] = []
   private _printDirname = './export/printscreen/'
-  private _csvDirname = './export/doc/'
+  private _csvDirname = './export/'
 
   constructor(siteMapPath: string) {
     this._siteMapPath = siteMapPath
-    this.getUrlPathsList()
+    console.log('Carregando lista de urls...')
+    this.loadUrlPathsList()
+    this.loadFilePaths()
   }
 
   /**
    * Navigate on the pages of sitemap, take print and save into ./printscreen folder
    */
   public async navigateAndTakePrint() {
-    const paths = this._urls
-
+    const paths = this._pathMapList
     if (!existsSync(this._printDirname)) {
       mkdirSync(this._printDirname, { recursive: true })
     }
     ;(async () => {
+      process.stdout.write('Abrindo Browser...\n')
       const browser = await puppeteer.launch()
       const page = await browser.newPage()
-      await page.goto(paths[0], { waitUntil: 'networkidle2' })
+      await page.goto(paths[0].url, { waitUntil: 'networkidle2' })
       await page.type('#edit-name', 'admin_cap')
       await page.type('#edit-pass', 'LfK75Jy8T^YT')
       await Promise.all([
         page.click('#edit-submit'),
         page.waitForNavigation({ waitUntil: 'networkidle2' }),
       ])
-      for (const path of paths) {
-        const filepath = this.createFilePath(path)
-        const response = await page.goto(path, { waitUntil: 'networkidle2' })
-        this._statusCode.push(response.status().toString())
+
+      for (const [index, path] of paths.entries()) {
+        const filepath = path.imgPath
+        process.stdout.clearLine(0)
+        process.stdout.cursorTo(0)
+        process.stdout.write(
+          `Acessando página ${index + 1} de ${paths.length + 1}`
+        )
+
+        const response = await page.goto(path.url, {
+          waitUntil: 'networkidle2',
+        })
+        this._pathMapList[index].statusCode = response.status().toString()
         await page.screenshot({
           path: filepath,
           fullPage: true,
@@ -50,41 +61,35 @@ export class Crawler {
   /**
    * Returns the list of urls parsed from sitemap.xml
    */
-  private getUrlPathsList(): void {
+  private loadUrlPathsList(): void {
     let siteMapObject: object = this._parser.parse(
       readFileSync(this._siteMapPath)
     )
-    let _urls: string[] = []
     for (const item of siteMapObject['urlset']['url']) {
-      _urls.push(item['loc'])
+      this._pathMapList.push({ url: item['loc'] })
     }
-    this._urls = _urls.slice(0, 3)
+    // Slice to test with a demo of complete list
+    // this._pathMapList = this._pathMapList.slice(0, 249)
   }
   /**
    * Returns the complete path and filename of file
    */
   private createFilePath(path: string): string {
-    const url = new URL(path)
-    if (url.pathname == '/') {
-      return `${this._printDirname}${url.host.replaceAll('.', '_')}.png`
+    const urlObject = new URL(path)
+    if (urlObject.pathname == '/') {
+      return `${this._printDirname}${urlObject.host.replaceAll('.', '_')}.png`
     }
-    const filePath = `${this._printDirname}${url.host.replaceAll(
+    const filePath = `${this._printDirname}${urlObject.host.replaceAll(
       '.',
       '_'
-    )}_${url.pathname.slice(1).replaceAll('/', '-')}.png`
+    )}_${urlObject.pathname.slice(1).replaceAll('/', '-')}.png`
     return filePath
   }
 
-  private generateRecords(): object[] {
-    let records: object[] = []
-    this._urls.forEach((element, index) => {
-      records.push({
-        url: new URL(element).pathname,
-        statusCode: this._statusCode[index],
-        imgPath: this.createFilePath(element),
-      })
-    })
-    return records
+  private loadFilePaths(): void {
+    for (const path of this._pathMapList) {
+      path.imgPath = this.createFilePath(path.url)
+    }
   }
 
   public createCSVFile() {
@@ -92,16 +97,17 @@ export class Crawler {
       mkdirSync(this._csvDirname, { recursive: true })
     }
     const csvWriter = createCsvWriter({
-      path: this._csvDirname + 'test.csv',
+      path: this._csvDirname + 'pages_test.csv',
       header: [
-        { id: 'url', title: 'URL' },
         { id: 'statusCode', title: 'Status Code' },
+        { id: 'url', title: 'URL' },
         { id: 'imgPath', title: 'IMG' },
       ],
+      fieldDelimiter: ';',
     })
-    const records: object[] = this.generateRecords()
+    const records: UrlMap[] = this._pathMapList
     csvWriter.writeRecords(records).then(() => {
-      console.log('...Done')
+      console.log('\n...Done')
     })
   }
 }
