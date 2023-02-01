@@ -13,6 +13,7 @@ export class Crawler {
 
   constructor(siteMapPath: string) {
     this._siteMapPath = siteMapPath
+    console.log('Carregando lista de urls...')
     this.loadUrlPathsList()
     this.loadFilePaths()
   }
@@ -22,11 +23,11 @@ export class Crawler {
    */
   public async navigateAndTakePrint() {
     const paths = this._pathMapList
-
     if (!existsSync(this._printDirname)) {
       mkdirSync(this._printDirname, { recursive: true })
     }
     ;(async () => {
+      process.stdout.write('Abrindo Browser...\n')
       const browser = await puppeteer.launch()
       const page = await browser.newPage()
       await page.goto(paths[0].url, { waitUntil: 'networkidle2' })
@@ -39,7 +40,11 @@ export class Crawler {
 
       for (const [index, path] of paths.entries()) {
         const filepath = path.imgPath
-        console.log('Acessando página número' + index)
+        process.stdout.clearLine(0)
+        process.stdout.cursorTo(0)
+        process.stdout.write(
+          `Acessando página ${index + 1} de ${paths.length + 1}`
+        )
 
         const response = await page.goto(path.url, {
           waitUntil: 'networkidle2',
@@ -50,7 +55,6 @@ export class Crawler {
           fullPage: true,
         })
       }
-
       await browser.close().then(() => this.createCSVFile())
     })()
   }
@@ -64,7 +68,8 @@ export class Crawler {
     for (const item of siteMapObject['urlset']['url']) {
       this._pathMapList.push({ url: item['loc'] })
     }
-    this._pathMapList = this._pathMapList.slice(0, 3)
+    // Slice to test with a demo of complete list
+    // this._pathMapList = this._pathMapList.slice(0, 249)
   }
   /**
    * Returns the complete path and filename of file
@@ -98,10 +103,11 @@ export class Crawler {
         { id: 'url', title: 'URL' },
         { id: 'imgPath', title: 'IMG' },
       ],
+      fieldDelimiter: ';',
     })
     const records: UrlMap[] = this._pathMapList
     csvWriter.writeRecords(records).then(() => {
-      console.log('...Done')
+      console.log('\n...Done')
     })
   }
 }

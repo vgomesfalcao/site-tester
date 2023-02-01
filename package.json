@@ -5,6 +5,7 @@
     "csv-writer": "^1.6.0",
     "dotenv": "^16.0.3",
     "fast-xml-parser": "^4.0.15",
+    "ora": "^3.4.0",
     "puppeteer": "^19.6.1",
     "puppeteer-tsd": "^0.0.2"
   },
@@ -15,6 +16,7 @@
     "watch": "nodemon"
   },
   "devDependencies": {
+    "@types/ora": "^3.2.0",
     "@typescript-eslint/eslint-plugin": "^5.49.0",
     "eslint": "^8.32.0",
     "eslint-config-standard-with-typescript": "^33.0.0",
