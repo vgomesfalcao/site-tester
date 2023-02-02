@@ -11,7 +11,8 @@
   "scripts": {
     "start": "tsx src/main.ts",
     "start:dev": "tsx watch src/main.ts",
-    "build": "tsup src"
+    "build": "tsup src",
+    "test": "vitest"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.49.0",
