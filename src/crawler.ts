@@ -2,6 +2,7 @@ import { XMLParser } from 'fast-xml-parser'
 import { readFileSync, existsSync, mkdirSync } from 'fs'
 import puppeteer, { Page } from 'puppeteer'
 import { URL } from 'url'
+import { Options } from './getArgs'
 const createCsvWriter = require('csv-writer').createObjectCsvWriter
 type UrlMap = { url: string; statusCode?: string; imgPath?: string }
 export class Crawler {
@@ -10,9 +11,17 @@ export class Crawler {
   private _pathMapList: UrlMap[] = []
   private _printDirname = './export/printscreen/'
   private _csvDirname = './export/'
+  private _options: Options
 
-  constructor(siteMapPath: string) {
+  constructor({
+    options,
+    siteMapPath,
+  }: {
+    options: Options
+    siteMapPath: string
+  }) {
     this._siteMapPath = siteMapPath
+    this._options = options
     console.log('Carregando lista de urls...')
     this.loadUrlPathsList()
     console.log('Carregando lista de imagens...')
@@ -22,7 +31,7 @@ export class Crawler {
   /**
    * Navigate on the pages of sitemap, take print and save into ./printscreen folder
    */
-  public async navigateAndTakePrint({ login = false }: { login: boolean }) {
+  public async navigateAndTakePrint() {
     console.log('Criando Pasta...')
     const paths = this._pathMapList
     if (!existsSync(this._printDirname)) {
@@ -32,7 +41,7 @@ export class Crawler {
     console.log('Abrindo Browser...\n')
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
-    login ? this.login(page, paths[0].url) : null
+    !this._options.nologin ? this.login(page, paths[0].url) : null
 
     for (const [index, path] of paths.entries()) {
       const filepath = path.imgPath
@@ -68,14 +77,17 @@ export class Crawler {
    * Returns the list of urls parsed from sitemap.xml
    */
   private loadUrlPathsList(): void {
-    let siteMapObject: object = this._parser.parse(
-      readFileSync(this._siteMapPath)
-    )
+    let siteMapObject: object
+    if (this._options.test) {
+      siteMapObject = this._parser.parse(readFileSync('resources/sitemap/sitemap_test.xml'))
+    } else {
+      siteMapObject = this._parser.parse(readFileSync(this._siteMapPath))
+    }
     for (const item of siteMapObject['urlset']['url']) {
       this._pathMapList.push({ url: item['loc'] })
     }
     // Slice to test with a demo of complete list
-    // this._pathMapList = this._pathMapList.slice(0, 249)
+    if (this._options.test) this._pathMapList = this._pathMapList.slice(0, 2)
   }
   /**
    * Returns the complete path and filename of file

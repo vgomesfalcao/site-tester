@@ -2,6 +2,7 @@
   "name": "site-tester",
   "description": "This crawler takes screenshots of website pages and create a csv file to documentate the test of the application",
   "dependencies": {
+    "args": "^5.0.3",
     "csv-writer": "^1.6.0",
     "dotenv": "^16.0.3",
     "fast-xml-parser": "^4.0.15",
@@ -12,9 +13,10 @@
     "start": "tsx src/main.ts",
     "start:dev": "tsx watch src/main.ts",
     "build": "tsup src",
-    "test": "vitest"
+    "test": "tsx src/main.ts -n -t"
   },
   "devDependencies": {
+    "@types/args": "^5.0.0",
     "@typescript-eslint/eslint-plugin": "^5.49.0",
     "eslint": "^8.32.0",
     "eslint-config-standard-with-typescript": "^33.0.0",

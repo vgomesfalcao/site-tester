@@ -1,5 +1,11 @@
-import { Crawler } from "./crawler"
+import { Crawler } from './crawler'
 
-const crawler = new Crawler('resources/sitemap/sitemap.xml')
+import { getArgs } from './getArgs'
+const options = getArgs(process.argv)
 
-crawler.navigateAndTakePrint({login:true})
+const crawler = new Crawler({
+  options,
+  siteMapPath: 'resources/sitemap/sitemap.xml',
+})
+
+crawler.navigateAndTakePrint()
