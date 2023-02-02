@@ -1,4 +1,4 @@
-import { UrlMap } from "../objectsType/UrlMap"
+import { UrlMap } from "../typeObjects/UrlMap"
 
 export interface IDocCreator{
 

@@ -1,6 +1,6 @@
 import { IDocCreator } from './IDocCreator'
 import { existsSync, mkdirSync } from 'fs'
-import { UrlMap } from '../objectsType/UrlMap'
+import { UrlMap } from '../typeObjects/UrlMap'
 const createCsvWriter = require('csv-writer').createObjectCsvWriter
 
 export class CsvCreator implements IDocCreator {
