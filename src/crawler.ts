@@ -1,6 +1,6 @@
 import { XMLParser } from 'fast-xml-parser'
 import { readFileSync, existsSync, mkdirSync } from 'fs'
-import puppeteer from 'puppeteer'
+import puppeteer, { Page } from 'puppeteer'
 import { URL } from 'url'
 const createCsvWriter = require('csv-writer').createObjectCsvWriter
 type UrlMap = { url: string; statusCode?: string; imgPath?: string }
@@ -15,49 +15,55 @@ export class Crawler {
     this._siteMapPath = siteMapPath
     console.log('Carregando lista de urls...')
     this.loadUrlPathsList()
+    console.log('Carregando lista de imagens...')
     this.loadFilePaths()
   }
 
   /**
    * Navigate on the pages of sitemap, take print and save into ./printscreen folder
    */
-  public async navigateAndTakePrint() {
+  public async navigateAndTakePrint({ login = false }: { login: boolean }) {
+    console.log('Criando Pasta...')
     const paths = this._pathMapList
     if (!existsSync(this._printDirname)) {
       mkdirSync(this._printDirname, { recursive: true })
     }
-    ;(async () => {
-      process.stdout.write('Abrindo Browser...\n')
-      const browser = await puppeteer.launch()
-      const page = await browser.newPage()
-      await page.goto(paths[0].url, { waitUntil: 'networkidle2' })
-      await page.type('#edit-name', 'admin_cap')
-      await page.type('#edit-pass', 'LfK75Jy8T^YT')
-      await Promise.all([
-        page.click('#edit-submit'),
-        page.waitForNavigation({ waitUntil: 'networkidle2' }),
-      ])
 
-      for (const [index, path] of paths.entries()) {
-        const filepath = path.imgPath
-        process.stdout.clearLine(0)
-        process.stdout.cursorTo(0)
-        process.stdout.write(
-          `Acessando página ${index + 1} de ${paths.length + 1}`
-        )
+    console.log('Abrindo Browser...\n')
+    const browser = await puppeteer.launch()
+    const page = await browser.newPage()
+    login ? this.login(page, paths[0].url) : null
 
-        const response = await page.goto(path.url, {
-          waitUntil: 'networkidle2',
-        })
-        this._pathMapList[index].statusCode = response.status().toString()
-        await page.screenshot({
-          path: filepath,
-          fullPage: true,
-        })
-      }
-      await browser.close().then(() => this.createCSVFile())
-    })()
+    for (const [index, path] of paths.entries()) {
+      const filepath = path.imgPath
+      process.stdout.clearLine(0)
+      process.stdout.cursorTo(0)
+      process.stdout.write(
+        `Acessando página ${index + 1} de ${paths.length + 1}`
+      )
+
+      const response = await page.goto(path.url, {
+        waitUntil: 'networkidle2',
+      })
+      this._pathMapList[index].statusCode = response.status().toString()
+      await page.screenshot({
+        path: filepath,
+        fullPage: true,
+      })
+    }
+    await browser.close().then(() => this.createCSVFile())
   }
+
+  private async login(page: Page, url: string): Promise<void> {
+    await page.goto(url, { waitUntil: 'networkidle2' })
+    await page.type('#edit-name', 'admin_cap')
+    await page.type('#edit-pass', 'LfK75Jy8T^YT')
+    await Promise.all([
+      page.click('#edit-submit'),
+      page.waitForNavigation({ waitUntil: 'networkidle2' }),
+    ])
+  }
+
   /**
    * Returns the list of urls parsed from sitemap.xml
    */
@@ -92,7 +98,7 @@ export class Crawler {
     }
   }
 
-  public createCSVFile() {
+  public createCSVFile(): void {
     if (!existsSync(this._csvDirname)) {
       mkdirSync(this._csvDirname, { recursive: true })
     }
