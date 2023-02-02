@@ -2,7 +2,7 @@ import { XMLParser } from 'fast-xml-parser'
 import { readFileSync, existsSync, mkdirSync } from 'fs'
 import puppeteer from 'puppeteer'
 import { URL } from 'url'
-import { IDocCreator } from './csv_creator/IDocCreator'
+import { IDocCreator } from './docCreators/IDocCreator'
 import { UrlMap } from './objectsType/UrlMap'
 export class Crawler {
   private _parser: XMLParser = new XMLParser()

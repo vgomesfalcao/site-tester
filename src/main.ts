@@ -1,5 +1,5 @@
 import { Crawler } from './crawler'
-import { CsvCreator } from './csv_creator/CsvCreator'
+import { CsvCreator } from './docCreators/CsvCreator'
 
 const pathToCSV = './export/'
 const filenameCSV = 'pages_test'
