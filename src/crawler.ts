@@ -75,7 +75,7 @@ export class Crawler {
   /**
    * Returns the complete path and filename of file
    */
-  private createFilePath(path: string): string {
+  private createFileName(path: string): string {
     const urlObject = new URL(path)
     if (urlObject.pathname == '/') {
       return `${this._printDirname}${urlObject.host.replaceAll('.', '_')}.png`
@@ -89,7 +89,7 @@ export class Crawler {
 
   private loadFilePaths(): void {
     for (const path of this._pathMapList) {
-      path.imgPath = this.createFilePath(path.url)
+      path.imgPath = this.createFileName(path.url)
     }
   }
 }
