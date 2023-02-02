@@ -2,17 +2,18 @@ import { XMLParser } from 'fast-xml-parser'
 import { readFileSync, existsSync, mkdirSync } from 'fs'
 import puppeteer from 'puppeteer'
 import { URL } from 'url'
-const createCsvWriter = require('csv-writer').createObjectCsvWriter
-type UrlMap = { url: string; statusCode?: string; imgPath?: string }
+import { IDocCreator } from './csv_creator/IDocCreator'
+import { UrlMap } from './objectsType/UrlMap'
 export class Crawler {
   private _parser: XMLParser = new XMLParser()
+  private _csvCreator: IDocCreator
   private _siteMapPath: string
   private _pathMapList: UrlMap[] = []
   private _printDirname = './export/printscreen/'
-  private _csvDirname = './export/'
 
-  constructor(siteMapPath: string) {
+  constructor(siteMapPath: string, csvCreator: IDocCreator) {
     this._siteMapPath = siteMapPath
+    this._csvCreator = csvCreator
     console.log('Carregando lista de urls...')
     this.loadUrlPathsList()
     this.loadFilePaths()
@@ -55,7 +56,7 @@ export class Crawler {
           fullPage: true,
         })
       }
-      await browser.close().then(() => this.createCSVFile())
+      await browser.close().then(() => this._csvCreator.save(this._pathMapList))
     })()
   }
   /**
@@ -90,24 +91,5 @@ export class Crawler {
     for (const path of this._pathMapList) {
       path.imgPath = this.createFilePath(path.url)
     }
-  }
-
-  public createCSVFile() {
-    if (!existsSync(this._csvDirname)) {
-      mkdirSync(this._csvDirname, { recursive: true })
-    }
-    const csvWriter = createCsvWriter({
-      path: this._csvDirname + 'pages_test.csv',
-      header: [
-        { id: 'statusCode', title: 'Status Code' },
-        { id: 'url', title: 'URL' },
-        { id: 'imgPath', title: 'IMG' },
-      ],
-      fieldDelimiter: ';',
-    })
-    const records: UrlMap[] = this._pathMapList
-    csvWriter.writeRecords(records).then(() => {
-      console.log('\n...Done')
-    })
   }
 }
