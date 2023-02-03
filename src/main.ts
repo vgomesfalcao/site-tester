@@ -8,4 +8,4 @@ const crawler = new Crawler({
   siteMapPath: 'resources/sitemap/sitemap.xml',
 })
 
-crawler.navigateAndTakePrint()
+crawler.takePrint()
