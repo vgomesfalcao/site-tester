@@ -39,17 +39,21 @@ export class Crawler {
     }
 
     console.log('Abrindo Browser...\n')
-    const browser = await puppeteer.launch()
+    const browser = await puppeteer.launch({
+      defaultViewport: {
+        width: 1920,
+        height: 1080,
+        deviceScaleFactor: 1,
+      },
+    })
     const page = await browser.newPage()
-    !this._options.nologin ? this.login(page, paths[0].url) : null
+    !this._options.nologin ? await this.login(page, paths[0].url) : null
 
     for (const [index, path] of paths.entries()) {
       const filepath = path.imgPath
       process.stdout.clearLine(0)
       process.stdout.cursorTo(0)
-      process.stdout.write(
-        `Acessando página ${index + 1} de ${paths.length + 1}`
-      )
+      process.stdout.write(`Acessando página ${index + 1} de ${paths.length}`)
 
       const response = await page.goto(path.url, {
         waitUntil: 'networkidle2',
@@ -79,15 +83,15 @@ export class Crawler {
   private loadUrlPathsList(): void {
     let siteMapObject: object
     if (this._options.test) {
-      siteMapObject = this._parser.parse(readFileSync('resources/sitemap/sitemap_test.xml'))
+      siteMapObject = this._parser.parse(
+        readFileSync('resources/sitemap/sitemap_test.xml')
+      )
     } else {
       siteMapObject = this._parser.parse(readFileSync(this._siteMapPath))
     }
     for (const item of siteMapObject['urlset']['url']) {
       this._pathMapList.push({ url: item['loc'] })
     }
-    // Slice to test with a demo of complete list
-    if (this._options.test) this._pathMapList = this._pathMapList.slice(0, 2)
   }
   /**
    * Returns the complete path and filename of file
